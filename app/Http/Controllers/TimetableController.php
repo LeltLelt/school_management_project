@@ -3,51 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Timetable;
-use App\Models\Classes;
-use App\Models\Teacher;
-use App\Models\Subject;
 use Illuminate\Http\Request;
 
 class TimetableController extends Controller
 {
     public function index()
     {
-        $timetables = Timetable::all();
-        return view('timetables.index', compact('timetables'));
-    }
-
-    public function create()
-    {
-        $classes = Classes::all();
-        $teachers = Teacher::all();
-        $subjects = Subject::all();
-
-        return view('timetables.create', compact('classes','teachers','subjects'));
+        return response()->json(Timetable::all());
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'class_id' => 'required',
-            'teacher_id' => 'required',
-            'subject_id' => 'required',
-            'date' => 'required'
-        ]);
-
-        Timetable::create($request->all());
-
-        return redirect()->route('timetables.index');
+        $timetable = Timetable::create($request->all());
+        return response()->json($timetable);
     }
 
-    public function edit($id)
+    public function show($id)
     {
-        $timetable = Timetable::findOrFail($id);
-
-        $classes = Classes::all();
-        $teachers = Teacher::all();
-        $subjects = Subject::all();
-
-        return view('timetables.edit', compact('timetable','classes','teachers','subjects'));
+        return response()->json(Timetable::findOrFail($id));
     }
 
     public function update(Request $request, $id)
@@ -55,13 +28,13 @@ class TimetableController extends Controller
         $timetable = Timetable::findOrFail($id);
         $timetable->update($request->all());
 
-        return redirect()->route('timetables.index');
+        return response()->json($timetable);
     }
 
     public function destroy($id)
     {
         Timetable::findOrFail($id)->delete();
 
-        return redirect()->route('timetables.index');
+        return response()->json(['message' => 'Timetable deleted']);
     }
 }

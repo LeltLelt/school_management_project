@@ -9,25 +9,25 @@ class TeacherController extends Controller
 {
     public function index()
     {
-        $teachers = Teacher::all();
-        return view('teachers.index', compact('teachers'));
-    }
-
-    public function create()
-    {
-        return view('teachers.create');
+        return response()->json(Teacher::all());
     }
 
     public function store(Request $request)
     {
-        Teacher::create($request->all());
-        return redirect()->route('teachers.index');
+        $request->validate([
+            'name' => 'required',
+            'email' => 'nullable|email',
+            'phone' => 'nullable'
+        ]);
+
+        $teacher = Teacher::create($request->all());
+
+        return response()->json($teacher);
     }
 
-    public function edit($id)
+    public function show($id)
     {
-        $teacher = Teacher::findOrFail($id);
-        return view('teachers.edit', compact('teacher'));
+        return response()->json(Teacher::findOrFail($id));
     }
 
     public function update(Request $request, $id)
@@ -35,12 +35,13 @@ class TeacherController extends Controller
         $teacher = Teacher::findOrFail($id);
         $teacher->update($request->all());
 
-        return redirect()->route('teachers.index');
+        return response()->json($teacher);
     }
 
     public function destroy($id)
     {
         Teacher::findOrFail($id)->delete();
-        return redirect()->route('teachers.index');
+
+        return response()->json(['message' => 'Teacher deleted']);
     }
 }

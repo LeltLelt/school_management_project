@@ -3,42 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\Student;
 use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
     public function index()
     {
-        $attendances = Attendance::all();
-        return view('attendances.index', compact('attendances'));
-    }
-
-    public function create()
-    {
-        $students = Student::all();
-        return view('attendances.create', compact('students'));
+        return response()->json(Attendance::all());
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'student_id' => 'required',
-            'date' => 'required',
-            'status' => 'required'
-        ]);
-
-        Attendance::create($request->all());
-
-        return redirect()->route('attendances.index');
+        $attendance = Attendance::create($request->all());
+        return response()->json($attendance);
     }
 
-    public function edit($id)
+    public function show($id)
     {
-        $attendance = Attendance::findOrFail($id);
-        $students = Student::all();
-
-        return view('attendances.edit', compact('attendance','students'));
+        return response()->json(Attendance::findOrFail($id));
     }
 
     public function update(Request $request, $id)
@@ -46,13 +28,13 @@ class AttendanceController extends Controller
         $attendance = Attendance::findOrFail($id);
         $attendance->update($request->all());
 
-        return redirect()->route('attendances.index');
+        return response()->json($attendance);
     }
 
     public function destroy($id)
     {
         Attendance::findOrFail($id)->delete();
 
-        return redirect()->route('attendances.index');
+        return response()->json(['message' => 'Attendance deleted']);
     }
 }

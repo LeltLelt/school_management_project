@@ -8,13 +8,7 @@ class StudentController extends Controller
 {
     public function index()
     {
-        $students = Student::all();
-        return view('students.index', compact('students'));
-    }
-
-    public function create()
-    {
-        return view('students.create');
+        return response()->json(Student::all());
     }
 
     public function store(Request $request)
@@ -23,37 +17,33 @@ class StudentController extends Controller
             'name' => 'required',
             'email' => 'nullable|email',
             'phone' => 'nullable',
-            'class_id'=>'required'
+            'class_id'=>'nuallable'
         ]);
 
-        Student::create([
-            'name'=>$request->name,
-            'email'=>$request->email,
-            'phone'=>$request->phone,
-            'class_id'=>$request->class_id,
-        ]);
+        $student = Student::create($request->all());
 
-        return redirect()->route('students.index');
+        return response()->json([
+            'message'=>'Student created',
+            'data'=>$student
+        ]);
     }
 
-    public function edit($id)
+    public function show($id)
     {
         $student = Student::findOrFail($id);
-        return view('students.edit', compact('student'));
+        return response()->json($student);
     }
 
     public function update(Request $request, $id)
     {
         $student = Student::findOrFail($id);
 
-        $request->validate([
-            'name' => 'required',
-            'email' => 'nullable|email',
-        ]);
-
         $student->update($request->all());
 
-        return redirect()->route('students.index');
+        return response()->json([
+            'message'=>'Student updated',
+            'data'=>$student
+        ]);
     }
 
     public function destroy($id)
@@ -61,6 +51,8 @@ class StudentController extends Controller
         $student = Student::findOrFail($id);
         $student->delete();
 
-        return redirect()->route('students.index');
+        return response()->json([
+            'message'=>'Student deleted'
+        ]);
     }
 }
