@@ -12,7 +12,7 @@ class ImportStudents extends Command
      *
      * @var string
      */
-    protected $signature = 'import-students';
+    protected $signature = 'import-students {--file=}'; 
 
     /**
      * The console command description.
@@ -26,19 +26,24 @@ class ImportStudents extends Command
      */
     public function handle()
     {
-        $path = storage_path('app/students.csv');
+        $path = $this->option('file');
+        if (!$path){
+            $this->error("Please provide CSV file using --file option");
+            return; 
+        }
         if (!file_exists($path)){
             $this->error("CSV file not found!");
             return;
         }
         $file = fopen($path, 'r');
         $header = fgetcsv($file);
+
         while ($row = fgetcsv($file)) {
+            $data = array_combine($header,$row);
             Student::create([
-                'name'=> $row[0],
-                'email'=>$row[1],
-                'phone'=>$row[2],
-                'class_id'=>$row[3],
+                'name'=> $data['name'] ,
+                'email'=>$data['email'],
+                'phone'=>$data['phone'],
             ]);
         }
     fclose($file);
