@@ -14,6 +14,9 @@ class SubjectController extends Controller
 
     public function store(Request $request)
     {
+         $request->validate([
+            'name'=>'required',
+        ]);
         $subject = Subject::create($request->all());
         return response()->json($subject);
     }

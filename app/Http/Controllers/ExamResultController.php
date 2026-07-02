@@ -14,6 +14,11 @@ class ExamResultController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'student_id'=>'required',
+            'subject_id'=>'required',
+            'marks'=>'reqired',
+        ]);
         $result = ExamResult::create($request->all());
         return response()->json($result);
     }

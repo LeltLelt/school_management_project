@@ -14,6 +14,10 @@ class AttendanceController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'student_id'=>'required',
+            'date'=>'nullable|date',
+        ]);
         $attendance = Attendance::create($request->all());
         return response()->json($attendance);
     }

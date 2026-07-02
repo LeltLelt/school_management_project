@@ -11,4 +11,8 @@ class Classes extends Model
         'teacher_id',
         'status'
     ];
+    public function enrollments()
+    {
+        return $this->hasMany(StudentEnrollment::class);
+    }
 }

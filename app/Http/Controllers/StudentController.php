@@ -17,7 +17,6 @@ class StudentController extends Controller
             'name' => 'required',
             'email' => 'nullable|email',
             'phone' => 'nullable',
-            'class_id'=>'nuallable'
         ]);
 
         $student = Student::create($request->all());

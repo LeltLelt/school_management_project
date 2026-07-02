@@ -14,6 +14,12 @@ class TimetableController extends Controller
 
     public function store(Request $request)
     {
+         $request->validate([
+            'class_id'=>'required',
+            'teacher_id'=>'required',
+            'subject_id'=>'required',
+            'date'=>'nullable|date',
+        ]);
         $timetable = Timetable::create($request->all());
         return response()->json($timetable);
     }

@@ -9,6 +9,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ExamResultController;
+use App\Http\Controllers\StudentEnrollmentController;
 
 
 Route::apiResource('students', StudentController::class);
@@ -18,3 +19,4 @@ Route::apiResource('subjects', SubjectController::class);
 Route::apiResource('timetables', TimetableController::class);
 Route::apiResource('attendances', AttendanceController::class);
 Route::apiResource('exam-results', ExamResultController::class);
+Route::apiResource('student-enrollments',StudentEnrollmentController::class);

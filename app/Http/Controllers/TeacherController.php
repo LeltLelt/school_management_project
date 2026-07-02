@@ -17,7 +17,8 @@ class TeacherController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'nullable|email',
-            'phone' => 'nullable'
+            'phone' => 'nullable',
+            
         ]);
 
         $teacher = Teacher::create($request->all());

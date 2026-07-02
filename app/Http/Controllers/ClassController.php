@@ -14,6 +14,10 @@ class ClassController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'name'=>'required',
+            'teacher_id'=>'required'
+        ]);
         $class = Classes::create($request->all());
         return response()->json($class);
     }
