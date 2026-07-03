@@ -5,14 +5,14 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Student;
 
-class ImportStudents extends Command
+class ImportCsv  extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'import-students {--file=}'; 
+    protected $signature = 'import-csv {--model=} {--file=}'; 
 
     /**
      * The console command description.
@@ -26,7 +26,12 @@ class ImportStudents extends Command
      */
     public function handle()
     {
+        $model=$this->option('model');
         $path = $this->option('file');
+        if (!$model){
+            $this->error("Please provide modele using --model option");
+            return; 
+        }
         if (!$path){
             $this->error("Please provide CSV file using --file option");
             return; 
@@ -35,18 +40,19 @@ class ImportStudents extends Command
             $this->error("CSV file not found!");
             return;
         }
+        $modelClass = "App\\Models\\{$model}";
+        if (!class_exists($modelClass)){
+            $this->error("Model {$model} not found!");
+            return;
+        }
         $file = fopen($path, 'r');
         $header = fgetcsv($file);
 
         while ($row = fgetcsv($file)) {
             $data = array_combine($header,$row);
-            Student::create([
-                'name'=> $data['name'] ,
-                'email'=>$data['email'],
-                'phone'=>$data['phone'],
-            ]);
+            $modelClass::create($data);
         }
     fclose($file);
-    $this->info("Students imported successfully!");
+    $this->info("{$model} imported successfully!");
     }
 }
