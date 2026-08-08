@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Organiztion;
 
 class Teacher extends Model
 {
@@ -12,8 +13,13 @@ class Teacher extends Model
         'name',
         'phone',
         'email',
+        'organization_id',
         'gender',
         'address',
         'status'
     ];
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }

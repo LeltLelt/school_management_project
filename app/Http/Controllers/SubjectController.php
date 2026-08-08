@@ -9,35 +9,73 @@ class SubjectController extends Controller
 {
     public function index()
     {
-        return response()->json(Subject::all());
+        $subjects = Subject::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->get();
+
+        return response()->json($subjects);
     }
 
     public function store(Request $request)
     {
-         $request->validate([
-            'name'=>'required',
+        $request->validate([
+            'name' => 'required',
         ]);
-        $subject = Subject::create($request->all());
-        return response()->json($subject);
+
+        $subject = Subject::create([
+            'name' => $request->name,
+            'organization_id' => auth()->user()->organization_id,
+        ]);
+
+        return response()->json([
+            'message' => 'Subject created',
+            'data' => $subject
+        ]);
     }
 
     public function show($id)
     {
-        return response()->json(Subject::findOrFail($id));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $subject = Subject::findOrFail($id);
-        $subject->update($request->all());
+        $subject = Subject::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
         return response()->json($subject);
     }
 
+    public function update(Request $request, $id)
+    {
+        $subject = Subject::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
+
+        $request->validate([
+            'name' => 'required',
+        ]);
+
+        $subject->update([
+            'name' => $request->name,
+        ]);
+
+        return response()->json([
+            'message' => 'Subject updated',
+            'data' => $subject
+        ]);
+    }
+
     public function destroy($id)
     {
-        Subject::findOrFail($id)->delete();
+        $subject = Subject::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
-        return response()->json(['message' => 'Subject deleted']);
+        $subject->delete();
+
+        return response()->json([
+            'message' => 'Subject deleted'
+        ]);
     }
 }

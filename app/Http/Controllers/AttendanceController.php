@@ -9,36 +9,85 @@ class AttendanceController extends Controller
 {
     public function index()
     {
-        return response()->json(Attendance::all());
+        $attendances = Attendance::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->get();
+
+        return response()->json($attendances);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'student_id'=>'required',
-            'date'=>'nullable|date',
+            'student_id' => 'required',
+            'class_id' => 'required',
+            'date' => 'required|date',
+            'status' => 'required|boolean',
         ]);
-        $attendance = Attendance::create($request->all());
-        return response()->json($attendance);
+
+        $attendance = Attendance::create([
+            'student_id' => $request->student_id,
+            'class_id' => $request->class_id,
+            'date' => $request->date,
+            'status' => $request->status,
+            'organization_id' => auth()->user()->organization_id,
+        ]);
+
+        return response()->json([
+            'message' => 'Attendance created',
+            'data' => $attendance
+        ]);
     }
 
     public function show($id)
     {
-        return response()->json(Attendance::findOrFail($id));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $attendance = Attendance::findOrFail($id);
-        $attendance->update($request->all());
+        $attendance = Attendance::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
         return response()->json($attendance);
     }
 
+    public function update(Request $request, $id)
+    {
+        $attendance = Attendance::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
+
+        $request->validate([
+            'student_id' => 'required',
+            'class_id' => 'required',
+            'date' => 'required|date',
+            'status' => 'required|boolean',
+        ]);
+
+        $attendance->update([
+            'student_id' => $request->student_id,
+            'class_id' => $request->class_id,
+            'date' => $request->date,
+            'status' => $request->status,
+        ]);
+
+        return response()->json([
+            'message' => 'Attendance updated',
+            'data' => $attendance
+        ]);
+    }
+
     public function destroy($id)
     {
-        Attendance::findOrFail($id)->delete();
+        $attendance = Attendance::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
-        return response()->json(['message' => 'Attendance deleted']);
+        $attendance->delete();
+
+        return response()->json([
+            'message' => 'Attendance deleted'
+        ]);
     }
 }

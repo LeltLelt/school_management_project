@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Organization;
+use App\Models\StudentEnrollment;
 
 class Student extends Model
 {
@@ -12,6 +14,7 @@ class Student extends Model
         'name',
         'phone',
         'email',
+        'organization_id',
         'gender',
         'address',
         'status'
@@ -20,4 +23,9 @@ class Student extends Model
     {
         return $this->hasMany(StudentEnrollment::class);
     }
+
+public function organization()
+{
+    return $this->belongsTo(Organization::class);
+}
 }

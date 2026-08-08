@@ -3,11 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Organization;
 
 class Subject extends Model
 {
-    protected $fillable=[
+    protected $fillable = [
         'name',
-        'status'
+        'organization_id',
     ];
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
 }

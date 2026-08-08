@@ -9,6 +9,11 @@ class TeacherController extends Controller
 {
     public function index()
     {
+        $teachers=Teacher::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->get();
+
         return response()->json(Teacher::all());
     }
 
@@ -21,27 +26,57 @@ class TeacherController extends Controller
             
         ]);
 
-        $teacher = Teacher::create($request->all());
+        $teacher = Teacher::create([
+            'name'=>$request->name,
+            'email'=>$request->email,
+            'phone'=>$request->phone,
+            'organization_id'=>auth()->user()->organizatiion_id,
+        ]);
 
-        return response()->json($teacher);
+        return response()->json([
+            'message'=>'Teacher created',
+            'data'=>$teacher
+        ]);
     }
 
     public function show($id)
     {
-        return response()->json(Teacher::findOrFail($id));
+        $teacher=Teacher::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
+        return response()->json($teacher);
     }
 
     public function update(Request $request, $id)
     {
-        $teacher = Teacher::findOrFail($id);
-        $teacher->update($request->all());
+        $teacher = Teacher::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
+        $request->validate([
+            'name'=>'required',
+            'email'=>'nullable|email',
+            'phone'=>'nullable',
+        ]);
+        $teacher->update([
+            'name'=>$request->name,
+            'email'=>$request->email,
+            'phone'=>$request->phone,
+        ]);
 
-        return response()->json($teacher);
+        return response()->json([
+            'message'=>'Teacher updated',
+            'data'=>$teacher
+        ]);
     }
 
     public function destroy($id)
     {
-        Teacher::findOrFail($id)->delete();
+        $teacher=Teacher::where(
+            'organization_id',
+            auth()->user()->organization_id)->findOrFail($id);
+        $teacher->delete();
 
         return response()->json(['message' => 'Teacher deleted']);
     }

@@ -9,37 +9,81 @@ class ExamResultController extends Controller
 {
     public function index()
     {
-        return response()->json(ExamResult::all());
+        $marks = ExamResult::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->get();
+
+        return response()->json($marks);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'student_id'=>'required',
-            'subject_id'=>'required',
-            'marks'=>'reqired',
+            'student_id' => 'required',
+            'subject_id' => 'required',
+            'marks' => 'required|integer',
         ]);
-        $result = ExamResult::create($request->all());
-        return response()->json($result);
+
+        $mark = ExamResult::create([
+            'student_id' => $request->student_id,
+            'subject_id' => $request->subject_id,
+            'marks' => $request->marks,
+            'organization_id' => auth()->user()->organization_id,
+        ]);
+
+        return response()->json([
+            'message' => 'Student mark created',
+            'data' => $mark
+        ]);
     }
 
     public function show($id)
     {
-        return response()->json(ExamResult::findOrFail($id));
+        $mark = ExamResult::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
+
+        return response()->json($mark);
     }
 
     public function update(Request $request, $id)
     {
-        $result = ExamResult::findOrFail($id);
-        $result->update($request->all());
+        $mark = ExamResult::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
-        return response()->json($result);
+        $request->validate([
+            'student_id' => 'required',
+            'subject_id' => 'required',
+            'marks' => 'required|integer',
+        ]);
+
+        $mark->update([
+            'student_id' => $request->student_id,
+            'subject_id' => $request->subject_id,
+            'marks' => $request->marks,
+        ]);
+
+        return response()->json([
+            'message' => 'Student mark updated',
+            'data' => $mark
+        ]);
     }
 
     public function destroy($id)
     {
-        ExamResult::findOrFail($id)->delete();
+        $mark = ExamResult::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
-        return response()->json(['message' => 'Result deleted']);
+        $mark->delete();
+
+        return response()->json([
+            'message' => 'Student mark deleted'
+        ]);
     }
 }

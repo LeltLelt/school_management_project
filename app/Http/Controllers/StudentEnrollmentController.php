@@ -9,10 +9,14 @@ class StudentEnrollmentController extends Controller
 {
     public function index()
     {
-        return response()->json(
-            StudentEnrollment::with(['student', 'class'])->get()
-        );
+        $enrollments = StudentEnrollment::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->get();
+
+        return response()->json($enrollments);
     }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -20,42 +24,62 @@ class StudentEnrollmentController extends Controller
             'class_id' => 'required',
         ]);
 
-        $enrollment = StudentEnrollment::create($request->all());
+        $enrollment = StudentEnrollment::create([
+            'student_id' => $request->student_id,
+            'class_id' => $request->class_id,
+            'organization_id' => auth()->user()->organization_id,
+        ]);
 
         return response()->json([
-            'message' => 'Enrollment created successfully',
+            'message' => 'Student enrolled',
             'data' => $enrollment
         ]);
     }
+
     public function show($id)
     {
-        $enrollment = StudentEnrollment::with(['student', 'class'])
-            ->findOrFail($id);
+        $enrollment = StudentEnrollment::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
         return response()->json($enrollment);
     }
+
     public function update(Request $request, $id)
     {
+        $enrollment = StudentEnrollment::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
+
         $request->validate([
             'student_id' => 'required',
             'class_id' => 'required',
         ]);
 
-        $enrollment = StudentEnrollment::findOrFail($id);
-
-        $enrollment->update($request->all());
+        $enrollment->update([
+            'student_id' => $request->student_id,
+            'class_id' => $request->class_id,
+        ]);
 
         return response()->json([
-            'message' => 'Enrollment updated successfully',
+            'message' => 'Enrollment updated',
             'data' => $enrollment
         ]);
     }
+
     public function destroy($id)
     {
-        StudentEnrollment::findOrFail($id)->delete();
+        $enrollment = StudentEnrollment::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
+
+        $enrollment->delete();
 
         return response()->json([
-            'message' => 'Enrollment deleted successfully'
+            'message' => 'Enrollment deleted'
         ]);
     }
 }

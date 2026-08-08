@@ -9,36 +9,77 @@ class ClassController extends Controller
 {
     public function index()
     {
-        return response()->json(Classes::all());
+        $classes = Classes::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->get();
+
+        return response()->json($classes);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'=>'required',
-            'teacher_id'=>'required'
+            'name' => 'required',
+            'teacher_id' => 'required',
         ]);
-        $class = Classes::create($request->all());
-        return response()->json($class);
+
+        $class = Classes::create([
+            'name' => $request->name,
+            'teacher_id' => $request->teacher_id,
+            'organization_id' => auth()->user()->organization_id,
+        ]);
+
+        return response()->json([
+            'message' => 'Class created',
+            'data' => $class
+        ]);
     }
 
     public function show($id)
     {
-        return response()->json(Classes::findOrFail($id));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $class = Classes::findOrFail($id);
-        $class->update($request->all());
+        $class = Classes::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
         return response()->json($class);
     }
 
+    public function update(Request $request, $id)
+    {
+        $class = Classes::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
+
+        $request->validate([
+            'name' => 'required',
+            'teacher_id' => 'required',
+        ]);
+
+        $class->update([
+            'name' => $request->name,
+            'teacher_id' => $request->teacher_id,
+        ]);
+
+        return response()->json([
+            'message' => 'Class updated',
+            'data' => $class
+        ]);
+    }
+
     public function destroy($id)
     {
-        Classes::findOrFail($id)->delete();
+        $class = Classes::where(
+            'organization_id',
+            auth()->user()->organization_id
+        )->findOrFail($id);
 
-        return response()->json(['message' => 'Class deleted']);
+        $class->delete();
+
+        return response()->json([
+            'message' => 'Class deleted'
+        ]);
     }
 }

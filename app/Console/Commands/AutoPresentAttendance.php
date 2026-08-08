@@ -33,7 +33,7 @@ class AutoPresentAttendance extends Command
             'student_id'=>$student->id,
             'date'=>now()->toDateString(),
         ],
-        [
+        [  
             'status'=> 1,
         ]);
        }
