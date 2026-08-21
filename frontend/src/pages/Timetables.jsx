@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../services/api";
 
 import {
@@ -21,20 +21,9 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 
-
-// ========================================
-// TIME SETTINGS
-// ========================================
-
 const START_HOUR = 7;
 const END_HOUR = 18;
-
 const HOUR_HEIGHT = 96;
-
-
-// ========================================
-// DAYS
-// ========================================
 
 const days = [
     "MON",
@@ -46,18 +35,13 @@ const days = [
     "SUN"
 ];
 
-
-// ========================================
-// HELPER - START OF WEEK
-// ========================================
-
 function getMonday(date) {
-
     const d = new Date(date);
 
     const day = d.getDay();
 
-    const difference = day === 0 ? -6 : 1 - day;
+    const difference =
+        day === 0 ? -6 : 1 - day;
 
     d.setDate(d.getDate() + difference);
 
@@ -66,29 +50,15 @@ function getMonday(date) {
     return d;
 }
 
-
-// ========================================
-// DATE FORMAT
-// ========================================
-
 function formatDate(date) {
-
     return date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric"
     });
 }
 
-
-// ========================================
-// TIME FORMAT
-// ========================================
-
 function formatTime(time) {
-
-    if (!time) {
-        return "";
-    }
+    if (!time) return "";
 
     const [hour, minute] = time.split(":");
 
@@ -106,16 +76,8 @@ function formatTime(time) {
     });
 }
 
-
-// ========================================
-// GET MINUTES
-// ========================================
-
 function getMinutes(time) {
-
-    if (!time) {
-        return 0;
-    }
+    if (!time) return 0;
 
     const [hour, minute] = time
         .split(":")
@@ -124,12 +86,11 @@ function getMinutes(time) {
     return hour * 60 + minute;
 }
 
-
-// ========================================
-// MAIN COMPONENT
-// ========================================
-
 function Timetables() {
+
+    // =========================================
+    // DATA
+    // =========================================
 
     const [timetables, setTimetables] = useState([]);
 
@@ -139,64 +100,134 @@ function Timetables() {
 
     const [teachers, setTeachers] = useState([]);
 
+    // =========================================
+    // CLASS
+    // =========================================
 
-    // Week currently displayed
+    const [selectedClass, setSelectedClass] =
+        useState("");
 
-    const [currentWeek, setCurrentWeek] = useState(
-        getMonday(new Date())
-    );
+    // =========================================
+    // TIMETABLE GROUP
+    // =========================================
 
+    const [timetableGroups, setTimetableGroups] =
+        useState([]);
 
-    // Search
+    const [selectedTimetableGroup, setSelectedTimetableGroup] =
+        useState("");
 
-    const [search, setSearch] = useState("");
+    // =========================================
+    // ADD TIMETABLE DIALOG
+    // =========================================
 
-    const [teacherFilter, setTeacherFilter] = useState("");
+    const [groupOpen, setGroupOpen] =
+        useState(false);
 
+    const [newGroupName, setNewGroupName] =
+        useState("");
 
-    // Modal
+    const [creatingGroup, setCreatingGroup] =
+        useState(false);
 
-    const [open, setOpen] = useState(false);
+    // =========================================
+    // WEEK
+    // =========================================
 
-    const [editId, setEditId] = useState(null);
+    const [currentWeek, setCurrentWeek] =
+        useState(getMonday(new Date()));
 
+    // =========================================
+    // SEARCH
+    // =========================================
 
-    // Form
+    const [search, setSearch] =
+        useState("");
+
+    const [teacherFilter, setTeacherFilter] =
+        useState("");
+
+    // =========================================
+    // ADD / EDIT LESSON DIALOG
+    // =========================================
+
+    const [open, setOpen] =
+        useState(false);
+
+    const [editId, setEditId] =
+        useState(null);
+
+    // =========================================
+    // LESSON FORM
+    // =========================================
 
     const [form, setForm] = useState({
         class_id: "",
         subject_id: "",
         teacher_id: "",
+        timetable_group_id: "",
         date: "",
         start_time: "",
         end_time: ""
     });
 
-
-    // ========================================
+    // =========================================
     // GET TIMETABLES
-    // ========================================
+    // =========================================
 
-    async function getTimetables() {
+    async function getTimetables(
+        timetableGroup = selectedTimetableGroup,
+        classId = selectedClass
+    ) {
 
         try {
 
-            const response =
-                await api.get("/timetables");
+            let url = "/timetables";
 
-            setTimetables(response.data);
+            const params = new URLSearchParams();
+
+            // IMPORTANT:
+            // Filter by CLASS
+            if (classId) {
+                params.append(
+                    "class_id",
+                    classId
+                );
+            }
+
+            // IMPORTANT:
+            // Filter by TIMETABLE
+            if (timetableGroup) {
+                params.append(
+                    "timetable_group_id",
+                    timetableGroup
+                );
+            }
+
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
+
+            const response =
+                await api.get(url);
+
+            setTimetables(
+                response.data
+            );
 
         } catch (error) {
 
-            console.log(error);
+            console.log(
+                "GET TIMETABLE ERROR:",
+                error
+            );
 
         }
     }
 
-
-    // ========================================
+    // =========================================
     // GET CLASSES
-    // ========================================
+    // =========================================
 
     async function getClasses() {
 
@@ -205,7 +236,9 @@ function Timetables() {
             const response =
                 await api.get("/classes");
 
-            setClasses(response.data);
+            setClasses(
+                response.data
+            );
 
         } catch (error) {
 
@@ -214,10 +247,9 @@ function Timetables() {
         }
     }
 
-
-    // ========================================
+    // =========================================
     // GET SUBJECTS
-    // ========================================
+    // =========================================
 
     async function getSubjects() {
 
@@ -226,7 +258,9 @@ function Timetables() {
             const response =
                 await api.get("/subjects");
 
-            setSubjects(response.data);
+            setSubjects(
+                response.data
+            );
 
         } catch (error) {
 
@@ -235,10 +269,9 @@ function Timetables() {
         }
     }
 
-
-    // ========================================
+    // =========================================
     // GET TEACHERS
-    // ========================================
+    // =========================================
 
     async function getTeachers() {
 
@@ -247,7 +280,9 @@ function Timetables() {
             const response =
                 await api.get("/teachers");
 
-            setTeachers(response.data);
+            setTeachers(
+                response.data
+            );
 
         } catch (error) {
 
@@ -256,45 +291,290 @@ function Timetables() {
         }
     }
 
+    // =========================================
+    // GET TIMETABLE GROUPS
+    // =========================================
 
-    // ========================================
-    // LOAD ALL DATA
-    // ========================================
+    async function getTimetableGroups(
+        classId
+    ) {
+
+        try {
+
+            if (!classId) {
+
+                setTimetableGroups([]);
+
+                setSelectedTimetableGroup("");
+
+                setTimetables([]);
+
+                return;
+            }
+
+            const response =
+                await api.get(
+                    `/timetable_groups?class_id=${classId}`
+                );
+
+            const groups =
+                response.data;
+
+            setTimetableGroups(
+                groups
+            );
+
+            if (groups.length > 0) {
+
+                const firstGroup =
+                    String(groups[0].id);
+
+                setSelectedTimetableGroup(
+                    firstGroup
+                );
+
+                await getTimetables(
+                    firstGroup,
+                    classId
+                );
+
+            } else {
+
+                setSelectedTimetableGroup("");
+
+                setTimetables([]);
+
+            }
+
+        } catch (error) {
+
+            console.log(
+                "GET GROUP ERROR:",
+                error
+            );
+
+        }
+    }
+
+    // =========================================
+    // INITIAL LOAD
+    // =========================================
 
     useEffect(() => {
 
-        getTimetables();
         getClasses();
+
         getSubjects();
+
         getTeachers();
 
     }, []);
 
+    // =========================================
+    // CLASS CHANGE
+    // =========================================
 
-    // ========================================
-    // OPEN ADD
-    // ========================================
+    async function handleClassChange(e) {
 
-    function openAddModal(date = "") {
+        const classId =
+            e.target.value;
+
+        setSelectedClass(
+            classId
+        );
+
+        setSelectedTimetableGroup("");
+
+        setTimetableGroups([]);
+
+        setTimetables([]);
+
+        if (classId) {
+
+            await getTimetableGroups(
+                classId
+            );
+
+        }
+
+    }
+
+    // =========================================
+    // TIMETABLE CHANGE
+    // =========================================
+
+    async function handleTimetableChange(e) {
+
+        const groupId =
+            e.target.value;
+
+        setSelectedTimetableGroup(
+            groupId
+        );
+
+        await getTimetables(
+            groupId,
+            selectedClass
+        );
+    }
+
+    // =========================================
+    // CREATE TIMETABLE
+    // =========================================
+
+    async function createTimetableGroup() {
+
+        if (!selectedClass) {
+
+            alert(
+                "Please select a class first."
+            );
+
+            return;
+        }
+
+        if (!newGroupName.trim()) {
+
+            alert(
+                "Please enter timetable name."
+            );
+
+            return;
+        }
+
+        try {
+
+            setCreatingGroup(true);
+
+            // CREATE GROUP
+            const response =
+                await api.post(
+                    "/timetable_groups",
+                    {
+                        class_id:
+                            selectedClass,
+
+                        name:
+                            newGroupName.trim()
+                    }
+                );
+
+            const newGroup =
+                response.data.data;
+
+            // GET UPDATED GROUPS
+            const groupsResponse =
+                await api.get(
+                    `/timetable_groups?class_id=${selectedClass}`
+                );
+
+            const groups =
+                groupsResponse.data;
+
+            setTimetableGroups(
+                groups
+            );
+
+            // SELECT NEW TIMETABLE
+            setSelectedTimetableGroup(
+                String(newGroup.id)
+            );
+
+            // CLEAR OLD LESSONS
+            setTimetables([]);
+
+            // CLOSE DIALOG
+            setNewGroupName("");
+
+            setGroupOpen(false);
+
+            // LOAD NEW TIMETABLE
+            await getTimetables(
+                String(newGroup.id),
+                selectedClass
+            );
+
+        } catch (error) {
+
+            console.log(
+                "CREATE GROUP ERROR:",
+                error
+            );
+
+            alert(
+                error.response?.data?.message ||
+                "Failed to create timetable"
+            );
+
+        } finally {
+
+            setCreatingGroup(false);
+
+        }
+    }
+
+    // =========================================
+    // OPEN ADD LESSON
+    // =========================================
+
+    function openAddModal(
+        date = ""
+    ) {
+
+        if (!selectedClass) {
+
+            alert(
+                "Please select a class first."
+            );
+
+            return;
+        }
+
+        if (!selectedTimetableGroup) {
+
+            alert(
+                "Please select a timetable first."
+            );
+
+            return;
+        }
 
         setEditId(null);
 
         setForm({
-            class_id: "",
-            subject_id: "",
-            teacher_id: "",
-            date: date,
-            start_time: "",
-            end_time: ""
+
+            class_id:
+                selectedClass,
+
+            subject_id:
+                "",
+
+            teacher_id:
+                "",
+
+            // IMPORTANT:
+            // LESSON IS CONNECTED
+            // TO SELECTED TIMETABLE
+            timetable_group_id:
+                selectedTimetableGroup,
+
+            date:
+                date,
+
+            start_time:
+                "",
+
+            end_time:
+                ""
+
         });
 
         setOpen(true);
     }
 
-
-    // ========================================
-    // CLOSE
-    // ========================================
+    // =========================================
+    // CLOSE LESSON DIALOG
+    // =========================================
 
     function closeModal() {
 
@@ -302,14 +582,22 @@ function Timetables() {
 
     }
 
-
-    // ========================================
-    // SAVE
-    // ========================================
+    // =========================================
+    // SAVE LESSON
+    // =========================================
 
     async function saveTimetable() {
 
         try {
+
+            if (!form.timetable_group_id) {
+
+                alert(
+                    "Please select a timetable."
+                );
+
+                return;
+            }
 
             if (editId) {
 
@@ -327,57 +615,71 @@ function Timetables() {
 
             }
 
-            await getTimetables();
-
-            setForm({
-                class_id: "",
-                subject_id: "",
-                teacher_id: "",
-                date: "",
-                start_time: "",
-                end_time: ""
-            });
-
-            setEditId(null);
+            await getTimetables(
+                selectedTimetableGroup,
+                selectedClass
+            );
 
             setOpen(false);
 
+            setEditId(null);
+
         } catch (error) {
 
-            console.log(error);
+            console.log(
+                "SAVE LESSON ERROR:",
+                error
+            );
 
             alert(
                 error.response?.data?.message ||
                 "Something went wrong"
             );
+
         }
     }
 
-
-    // ========================================
-    // EDIT
-    // ========================================
+    // =========================================
+    // EDIT LESSON
+    // =========================================
 
     function editTimetable(item) {
 
-        setEditId(item.id);
+        setEditId(
+            item.id
+        );
 
         setForm({
-            class_id: item.class_id,
-            subject_id: item.subject_id,
-            teacher_id: item.teacher_id,
-            date: item.date,
-            start_time: item.start_time,
-            end_time: item.end_time
+
+            class_id:
+                item.class_id,
+
+            subject_id:
+                item.subject_id,
+
+            teacher_id:
+                item.teacher_id,
+
+            timetable_group_id:
+                item.timetable_group_id,
+
+            date:
+                item.date,
+
+            start_time:
+                item.start_time,
+
+            end_time:
+                item.end_time
+
         });
 
         setOpen(true);
     }
 
-
-    // ========================================
-    // DELETE
-    // ========================================
+    // =========================================
+    // DELETE LESSON
+    // =========================================
 
     async function deleteTimetable(id) {
 
@@ -386,7 +688,9 @@ function Timetables() {
                 "Delete this schedule?"
             )
         ) {
+
             return;
+
         }
 
         try {
@@ -395,7 +699,12 @@ function Timetables() {
                 `/timetables/${id}`
             );
 
-            getTimetables();
+            setOpen(false);
+
+            await getTimetables(
+                selectedTimetableGroup,
+                selectedClass
+            );
 
         } catch (error) {
 
@@ -404,42 +713,37 @@ function Timetables() {
         }
     }
 
-
-    // ========================================
-    // PREVIOUS WEEK
-    // ========================================
+    // =========================================
+    // WEEK NAVIGATION
+    // =========================================
 
     function previousWeek() {
 
-        const date = new Date(currentWeek);
+        const date =
+            new Date(currentWeek);
 
         date.setDate(
             date.getDate() - 7
         );
 
-        setCurrentWeek(date);
+        setCurrentWeek(
+            date
+        );
     }
-
-
-    // ========================================
-    // NEXT WEEK
-    // ========================================
 
     function nextWeek() {
 
-        const date = new Date(currentWeek);
+        const date =
+            new Date(currentWeek);
 
         date.setDate(
             date.getDate() + 7
         );
 
-        setCurrentWeek(date);
+        setCurrentWeek(
+            date
+        );
     }
-
-
-    // ========================================
-    // TODAY
-    // ========================================
 
     function goToday() {
 
@@ -448,84 +752,87 @@ function Timetables() {
         );
     }
 
-
-    // ========================================
+    // =========================================
     // WEEK DATES
-    // ========================================
+    // =========================================
 
-    const weekDates = days.map(
-        (_, index) => {
+    const weekDates =
+        days.map(
+            (_, index) => {
 
-            const date =
-                new Date(currentWeek);
+                const date =
+                    new Date(
+                        currentWeek
+                    );
 
-            date.setDate(
-                currentWeek.getDate() + index
-            );
-
-            return date;
-        }
-    );
-
-
-    // ========================================
-    // FILTER TIMETABLES
-    // ========================================
-
-    const filteredTimetables =
-        timetables.filter((item) => {
-
-            const className =
-                classes.find(
-                    (c) =>
-                        String(c.id) ===
-                        String(item.class_id)
-                )?.name || "";
-
-            const subjectName =
-                subjects.find(
-                    (s) =>
-                        String(s.id) ===
-                        String(item.subject_id)
-                )?.name || "";
-
-            const teacherName =
-                teachers.find(
-                    (t) =>
-                        String(t.id) ===
-                        String(item.teacher_id)
-                )?.name || "";
-
-
-            const searchText =
-                `${className} ${subjectName}`
-                    .toLowerCase();
-
-
-            const matchesSearch =
-                searchText.includes(
-                    search.toLowerCase()
+                date.setDate(
+                    currentWeek.getDate() +
+                    index
                 );
 
+                return date;
 
-            const matchesTeacher =
-                teacherFilter === "" ||
-                String(item.teacher_id) ===
-                String(teacherFilter);
+            }
+        );
 
+    // =========================================
+    // FILTER
+    // =========================================
 
-            return (
-                matchesSearch &&
-                matchesTeacher
-            );
-        });
+    const filteredTimetables =
+        timetables.filter(
+            (item) => {
 
+                const subjectName =
+                    subjects.find(
+                        (s) =>
+                            String(s.id) ===
+                            String(
+                                item.subject_id
+                            )
+                    )?.name || "";
 
-    // ========================================
-    // GET SCHEDULE FOR DAY
-    // ========================================
+                const className =
+                    classes.find(
+                        (c) =>
+                            String(c.id) ===
+                            String(
+                                item.class_id
+                            )
+                    )?.name || "";
 
-    function getSchedulesForDay(date) {
+                const searchText =
+                    `${className} ${subjectName}`
+                        .toLowerCase();
+
+                const matchesSearch =
+                    searchText.includes(
+                        search.toLowerCase()
+                    );
+
+                const matchesTeacher =
+                    teacherFilter === "" ||
+                    String(
+                        item.teacher_id
+                    ) ===
+                    String(
+                        teacherFilter
+                    );
+
+                return (
+                    matchesSearch &&
+                    matchesTeacher
+                );
+            }
+        );
+
+    // =========================================
+    // GET DAY SCHEDULES
+    // =========================================
+
+    function getSchedulesForDay(
+        date
+    ) {
 
         const dateString =
             date.toISOString()
@@ -534,16 +841,18 @@ function Timetables() {
         return filteredTimetables.filter(
             (item) => {
 
-                return item.date === dateString;
+                return (
+                    item.date ===
+                    dateString
+                );
 
             }
         );
     }
 
-
-    // ========================================
-    // GET NAME
-    // ========================================
+    // =========================================
+    // NAMES
+    // =========================================
 
     function getClassName(id) {
 
@@ -557,7 +866,6 @@ function Timetables() {
         );
     }
 
-
     function getSubjectName(id) {
 
         return (
@@ -569,7 +877,6 @@ function Timetables() {
             `Subject ${id}`
         );
     }
-
 
     function getTeacherName(id) {
 
@@ -583,45 +890,44 @@ function Timetables() {
         );
     }
 
-
-    // ========================================
+    // =========================================
     // WEEK TITLE
-    // ========================================
-
-    const weekStart =
-        weekDates[0];
-
-    const weekEnd =
-        weekDates[6];
-
+    // =========================================
 
     const weekTitle =
-        `${formatDate(weekStart)} – ${formatDate(weekEnd)}`;
+        `${formatDate(
+            weekDates[0]
+        )} – ${formatDate(
+            weekDates[6]
+        )}`;
 
-
-    // ========================================
+    // =========================================
     // RENDER
-    // ========================================
+    // =========================================
 
     return (
 
         <Box
             sx={{
-                backgroundColor: "#f8fafc",
-                minHeight: "100vh",
+                backgroundColor:
+                    "#f8fafc",
+                minHeight:
+                    "100vh",
                 p: 3
             }}
         >
 
-            {/* ==================================
+            {/* =================================
                 HEADER
-            ================================== */}
+            ================================= */}
 
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    justifyContent:
+                        "space-between",
+                    alignItems:
+                        "center",
                     mb: 3
                 }}
             >
@@ -643,67 +949,197 @@ function Timetables() {
 
                 </Box>
 
-
-                {/* ADD BUTTON */}
-
                 <Button
                     variant="contained"
-                    startIcon={<AddIcon />}
+                    startIcon={
+                        <AddIcon />
+                    }
                     onClick={() =>
                         openAddModal()
                     }
                 >
-                    ADD SCHEDULE
+                    ADD LESSON
                 </Button>
 
             </Box>
 
-
-            {/* ==================================
-                TOP CONTROLS
-            ================================== */}
+            {/* =================================
+                CONTROLS
+            ================================= */}
 
             <Box
                 sx={{
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 2,
                     gap: 2,
-                    flexWrap: "wrap"
+                    alignItems:
+                        "center",
+                    mb: 2,
+                    flexWrap:
+                        "wrap"
                 }}
             >
+
+                {/* CLASS */}
+
+                <TextField
+                    select
+                    size="small"
+                    label="Class"
+                    value={
+                        selectedClass
+                    }
+                    onChange={
+                        handleClassChange
+                    }
+                    sx={{
+                        width: 200,
+                        backgroundColor:
+                            "white"
+                    }}
+                >
+
+                    <MenuItem value="">
+                        Select Class
+                    </MenuItem>
+
+                    {classes.map(
+                        (item) => (
+
+                            <MenuItem
+                                key={
+                                    item.id
+                                }
+                                value={
+                                    item.id
+                                }
+                            >
+                                {
+                                    item.name
+                                }
+                            </MenuItem>
+
+                        )
+                    )}
+
+                </TextField>
+
+                {/* =================================
+                    TIMETABLE DROPDOWN
+                ================================= */}
+
+                <Box
+                    sx={{
+                        display:
+                            "flex",
+                        alignItems:
+                            "center",
+                        gap: 1
+                    }}
+                >
+
+                    <TextField
+                        select
+                        size="small"
+                        label="Timetable"
+                        value={
+                            selectedTimetableGroup
+                        }
+                        onChange={
+                            handleTimetableChange
+                        }
+                        disabled={
+                            !selectedClass
+                        }
+                        sx={{
+                            width: 200,
+                            backgroundColor:
+                                "white"
+                        }}
+                    >
+
+                        {timetableGroups.map(
+                            (group) => (
+
+                                <MenuItem
+                                    key={
+                                        group.id
+                                    }
+                                    value={
+                                        String(
+                                            group.id
+                                        )
+                                    }
+                                >
+                                    {
+                                        group.name
+                                    }
+                                </MenuItem>
+
+                            )
+                        )}
+
+                    </TextField>
+
+                    {/* ADD TIMETABLE */}
+
+                    <Button
+                        variant="outlined"
+                        onClick={() => {
+
+                            setNewGroupName("");
+
+                            setGroupOpen(
+                                true
+                            );
+
+                        }}
+                        disabled={
+                            !selectedClass
+                        }
+                    >
+                        + Add Timetable
+                    </Button>
+
+                </Box>
 
                 {/* SEARCH */}
 
                 <TextField
                     size="small"
-                    placeholder="Search class or course..."
-                    value={search}
+                    placeholder="Search subject..."
+                    value={
+                        search
+                    }
                     onChange={(e) =>
-                        setSearch(e.target.value)
+                        setSearch(
+                            e.target.value
+                        )
                     }
                     sx={{
-                        width: 300,
-                        backgroundColor: "white"
+                        width: 260,
+                        backgroundColor:
+                            "white"
                     }}
                     InputProps={{
                         startAdornment: (
-                            <InputAdornment position="start">
+                            <InputAdornment
+                                position="start"
+                            >
                                 <SearchIcon />
                             </InputAdornment>
                         )
                     }}
                 />
 
-
-                {/* TEACHER FILTER */}
+                {/* TEACHER */}
 
                 <TextField
                     select
                     size="small"
                     label="Teacher"
-                    value={teacherFilter}
+                    value={
+                        teacherFilter
+                    }
                     onChange={(e) =>
                         setTeacherFilter(
                             e.target.value
@@ -711,7 +1147,8 @@ function Timetables() {
                     }
                     sx={{
                         width: 200,
-                        backgroundColor: "white"
+                        backgroundColor:
+                            "white"
                     }}
                 >
 
@@ -723,10 +1160,16 @@ function Timetables() {
                         (teacher) => (
 
                             <MenuItem
-                                key={teacher.id}
-                                value={teacher.id}
+                                key={
+                                    teacher.id
+                                }
+                                value={
+                                    teacher.id
+                                }
                             >
-                                {teacher.name}
+                                {
+                                    teacher.name
+                                }
                             </MenuItem>
 
                         )
@@ -734,46 +1177,53 @@ function Timetables() {
 
                 </TextField>
 
-
-                {/* WEEK NAVIGATION */}
+                {/* WEEK */}
 
                 <Box
                     sx={{
-                        display: "flex",
-                        alignItems: "center",
+                        display:
+                            "flex",
+                        alignItems:
+                            "center",
                         gap: 1,
-                        marginLeft: "auto"
+                        ml: "auto"
                     }}
                 >
 
                     <Button
                         variant="outlined"
-                        onClick={goToday}
+                        onClick={
+                            goToday
+                        }
                     >
                         TODAY
                     </Button>
 
-
                     <IconButton
-                        onClick={previousWeek}
+                        onClick={
+                            previousWeek
+                        }
                     >
                         <ChevronLeftIcon />
                     </IconButton>
-
 
                     <Typography
                         fontWeight="600"
                         sx={{
                             minWidth: 150,
-                            textAlign: "center"
+                            textAlign:
+                                "center"
                         }}
                     >
-                        {weekTitle}
+                        {
+                            weekTitle
+                        }
                     </Typography>
 
-
                     <IconButton
-                        onClick={nextWeek}
+                        onClick={
+                            nextWeek
+                        }
                     >
                         <ChevronRightIcon />
                     </IconButton>
@@ -782,29 +1232,29 @@ function Timetables() {
 
             </Box>
 
-
-            {/* ==================================
+            {/* =================================
                 CALENDAR
-            ================================== */}
+            ================================= */}
 
             <Paper
                 sx={{
-                    overflow: "hidden",
-                    border: "1px solid #ddd"
+                    overflow:
+                        "hidden",
+                    border:
+                        "1px solid #ddd"
                 }}
             >
 
-                {/* DAYS HEADER */}
+                {/* DAY HEADER */}
 
                 <Box
                     sx={{
-                        display: "grid",
+                        display:
+                            "grid",
                         gridTemplateColumns:
                             "58px repeat(7, 1fr)"
                     }}
                 >
-
-                    {/* EMPTY */}
 
                     <Box
                         sx={{
@@ -815,9 +1265,11 @@ function Timetables() {
                         }}
                     />
 
-
                     {weekDates.map(
-                        (date, index) => {
+                        (
+                            date,
+                            index
+                        ) => {
 
                             const isToday =
                                 date.toDateString() ===
@@ -827,9 +1279,12 @@ function Timetables() {
                             return (
 
                                 <Box
-                                    key={index}
+                                    key={
+                                        index
+                                    }
                                     sx={{
-                                        height: 70,
+                                        height:
+                                            70,
                                         p: 1,
                                         borderRight:
                                             "1px solid #ddd",
@@ -846,7 +1301,11 @@ function Timetables() {
                                         variant="caption"
                                         fontWeight="600"
                                     >
-                                        {days[index]}
+                                        {
+                                            days[
+                                                index
+                                            ]
+                                        }
                                     </Typography>
 
                                     <Typography
@@ -857,7 +1316,9 @@ function Timetables() {
                                                 : "text.primary"
                                         }
                                     >
-                                        {date.getDate()}
+                                        {
+                                            date.getDate()
+                                        }
                                     </Typography>
 
                                 </Box>
@@ -869,18 +1330,18 @@ function Timetables() {
 
                 </Box>
 
-
-                {/* CALENDAR BODY */}
+                {/* BODY */}
 
                 <Box
                     sx={{
-                        display: "grid",
+                        display:
+                            "grid",
                         gridTemplateColumns:
                             "58px repeat(7, 1fr)"
                     }}
                 >
 
-                    {/* TIME COLUMN */}
+                    {/* TIME */}
 
                     <Box>
 
@@ -890,7 +1351,10 @@ function Timetables() {
                                     END_HOUR -
                                     START_HOUR
                             },
-                            (_, index) => {
+                            (
+                                _,
+                                index
+                            ) => {
 
                                 const hour =
                                     START_HOUR +
@@ -899,7 +1363,9 @@ function Timetables() {
                                 return (
 
                                     <Box
-                                        key={hour}
+                                        key={
+                                            hour
+                                        }
                                         sx={{
                                             height:
                                                 HOUR_HEIGHT,
@@ -918,13 +1384,19 @@ function Timetables() {
                                             variant="caption"
                                             color="text.secondary"
                                         >
-                                            {hour > 12
-                                                ? hour -
-                                                  12
-                                                : hour}{" "}
-                                            {hour >= 12
-                                                ? "PM"
-                                                : "AM"}
+                                            {
+                                                hour >
+                                                12
+                                                    ? hour -
+                                                      12
+                                                    : hour
+                                            }{" "}
+                                            {
+                                                hour >=
+                                                12
+                                                    ? "PM"
+                                                    : "AM"
+                                            }
                                         </Typography>
 
                                     </Box>
@@ -936,28 +1408,33 @@ function Timetables() {
 
                     </Box>
 
-
-                    {/* EACH DAY */}
+                    {/* DAYS */}
 
                     {weekDates.map(
-                        (date, dayIndex) => {
+                        (
+                            date,
+                            dayIndex
+                        ) => {
 
                             const schedules =
                                 getSchedulesForDay(
                                     date
                                 );
 
-
                             return (
 
                                 <Box
-                                    key={dayIndex}
+                                    key={
+                                        dayIndex
+                                    }
                                     sx={{
                                         position:
                                             "relative",
                                         height:
-                                            (END_HOUR -
-                                                START_HOUR) *
+                                            (
+                                                END_HOUR -
+                                                START_HOUR
+                                            ) *
                                             HOUR_HEIGHT,
                                         borderRight:
                                             "1px solid #ddd",
@@ -974,10 +1451,15 @@ function Timetables() {
                                                 END_HOUR -
                                                 START_HOUR
                                         },
-                                        (_, index) => (
+                                        (
+                                            _,
+                                            index
+                                        ) => (
 
                                             <Box
-                                                key={index}
+                                                key={
+                                                    index
+                                                }
                                                 sx={{
                                                     position:
                                                         "absolute",
@@ -996,15 +1478,17 @@ function Timetables() {
                                         )
                                     )}
 
-
-                                    {/* PLUS BUTTON */}
+                                    {/* ADD LESSON */}
 
                                     <IconButton
                                         size="small"
                                         onClick={() =>
                                             openAddModal(
-                                                date.toISOString()
-                                                    .split("T")[0]
+                                                date
+                                                    .toISOString()
+                                                    .split(
+                                                        "T"
+                                                    )[0]
                                             )
                                         }
                                         sx={{
@@ -1015,16 +1499,19 @@ function Timetables() {
                                             zIndex: 5
                                         }}
                                     >
+
                                         <AddIcon
                                             fontSize="small"
                                         />
+
                                     </IconButton>
 
-
-                                    {/* SCHEDULES */}
+                                    {/* LESSONS */}
 
                                     {schedules.map(
-                                        (item) => {
+                                        (
+                                            item
+                                        ) => {
 
                                             const start =
                                                 getMinutes(
@@ -1036,24 +1523,29 @@ function Timetables() {
                                                     item.end_time
                                                 );
 
-
                                             const top =
-                                                ((start -
-                                                    START_HOUR *
-                                                        60) /
-                                                    60) *
+                                                (
+                                                    (
+                                                        start -
+                                                        START_HOUR *
+                                                        60
+                                                    ) /
+                                                    60
+                                                ) *
                                                 HOUR_HEIGHT;
-
 
                                             const height =
                                                 Math.max(
                                                     45,
-                                                    ((end -
-                                                        start) /
-                                                        60) *
-                                                        HOUR_HEIGHT
+                                                    (
+                                                        (
+                                                            end -
+                                                            start
+                                                        ) /
+                                                        60
+                                                    ) *
+                                                    HOUR_HEIGHT
                                                 );
-
 
                                             return (
 
@@ -1069,12 +1561,10 @@ function Timetables() {
                                                     sx={{
                                                         position:
                                                             "absolute",
-                                                        top:
-                                                            top,
+                                                        top,
                                                         left: 4,
                                                         right: 4,
-                                                        height:
-                                                            height,
+                                                        height,
                                                         backgroundColor:
                                                             "#fce4ec",
                                                         borderLeft:
@@ -1088,10 +1578,10 @@ function Timetables() {
                                                         overflow:
                                                             "hidden",
                                                         "&:hover":
-                                                            {
-                                                                boxShadow:
-                                                                    2
-                                                            }
+                                                        {
+                                                            boxShadow:
+                                                                2
+                                                        }
                                                     }}
                                                 >
 
@@ -1100,43 +1590,39 @@ function Timetables() {
                                                         fontWeight="700"
                                                         color="#e91e63"
                                                     >
-                                                        {getClassName(
-                                                            item.class_id
-                                                        )}
+                                                        {
+                                                            getSubjectName(
+                                                                item.subject_id
+                                                            )
+                                                        }
                                                     </Typography>
-
 
                                                     <Typography
                                                         variant="caption"
                                                         display="block"
                                                     >
-                                                        {getSubjectName(
-                                                            item.subject_id
-                                                        )}
-                                                    </Typography>
-
-
-                                                    <Typography
-                                                        variant="caption"
-                                                        display="block"
-                                                    >
-                                                        {formatTime(
-                                                            item.start_time
-                                                        )}
+                                                        {
+                                                            formatTime(
+                                                                item.start_time
+                                                            )
+                                                        }
                                                         {" – "}
-                                                        {formatTime(
-                                                            item.end_time
-                                                        )}
+                                                        {
+                                                            formatTime(
+                                                                item.end_time
+                                                            )
+                                                        }
                                                     </Typography>
-
 
                                                     <Typography
                                                         variant="caption"
                                                         color="text.secondary"
                                                     >
-                                                        {getTeacherName(
-                                                            item.teacher_id
-                                                        )}
+                                                        {
+                                                            getTeacherName(
+                                                                item.teacher_id
+                                                            )
+                                                        }
                                                     </Typography>
 
                                                 </Box>
@@ -1157,10 +1643,111 @@ function Timetables() {
 
             </Paper>
 
+            {/* =================================
+                ADD TIMETABLE DIALOG
+            ================================= */}
 
-            {/* ==================================
-                ADD / EDIT DIALOG
-            ================================== */}
+            <Dialog
+                open={
+                    groupOpen
+                }
+                onClose={() => {
+
+                    if (!creatingGroup) {
+                        setGroupOpen(
+                            false
+                        );
+                    }
+
+                }}
+                fullWidth
+                maxWidth="xs"
+            >
+
+                <DialogTitle>
+                    Add Timetable
+                </DialogTitle>
+
+                <DialogContent>
+
+                    <Typography
+                        sx={{
+                            mt: 1,
+                            mb: 1
+                        }}
+                    >
+                        Class
+                    </Typography>
+
+                    <Typography
+                        fontWeight="600"
+                        sx={{
+                            mb: 2
+                        }}
+                    >
+                        {
+                            getClassName(
+                                selectedClass
+                            )
+                        }
+                    </Typography>
+
+                    <TextField
+                        autoFocus
+                        fullWidth
+                        label="Timetable Name"
+                        placeholder="Timetable 2"
+                        margin="normal"
+                        value={
+                            newGroupName
+                        }
+                        onChange={(e) =>
+                            setNewGroupName(
+                                e.target.value
+                            )
+                        }
+                    />
+
+                </DialogContent>
+
+                <DialogActions>
+
+                    <Button
+                        onClick={() =>
+                            setGroupOpen(
+                                false
+                            )
+                        }
+                        disabled={
+                            creatingGroup
+                        }
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        onClick={
+                            createTimetableGroup
+                        }
+                        disabled={
+                            creatingGroup
+                        }
+                    >
+                        {
+                            creatingGroup
+                                ? "ADDING..."
+                                : "ADD"
+                        }
+                    </Button>
+
+                </DialogActions>
+
+            </Dialog>
+
+            {/* =================================
+                ADD / EDIT LESSON DIALOG
+            ================================= */}
 
             <Dialog
                 open={open}
@@ -1171,41 +1758,43 @@ function Timetables() {
 
                 <DialogTitle>
 
-                    {editId
-                        ? "Edit Schedule"
-                        : "Add Schedule"
+                    {
+                        editId
+                            ? "Edit Lesson"
+                            : "Add Lesson"
                     }
 
                 </DialogTitle>
-
 
                 <DialogContent>
 
                     {/* CLASS */}
 
                     <TextField
-                        select
                         fullWidth
+                        select
                         label="Class"
                         margin="normal"
-                        value={form.class_id}
-                        onChange={(e) =>
-                            setForm({
-                                ...form,
-                                class_id:
-                                    e.target.value
-                            })
+                        value={
+                            form.class_id
                         }
+                        disabled
                     >
 
                         {classes.map(
                             (item) => (
 
                                 <MenuItem
-                                    key={item.id}
-                                    value={item.id}
+                                    key={
+                                        item.id
+                                    }
+                                    value={
+                                        item.id
+                                    }
                                 >
-                                    {item.name}
+                                    {
+                                        item.name
+                                    }
                                 </MenuItem>
 
                             )
@@ -1213,15 +1802,52 @@ function Timetables() {
 
                     </TextField>
 
+                    {/* TIMETABLE */}
+
+                    <TextField
+                        fullWidth
+                        select
+                        label="Timetable"
+                        margin="normal"
+                        value={
+                            form.timetable_group_id
+                        }
+                        disabled
+                    >
+
+                        {timetableGroups.map(
+                            (group) => (
+
+                                <MenuItem
+                                    key={
+                                        group.id
+                                    }
+                                    value={
+                                        String(
+                                            group.id
+                                        )
+                                    }
+                                >
+                                    {
+                                        group.name
+                                    }
+                                </MenuItem>
+
+                            )
+                        )}
+
+                    </TextField>
 
                     {/* SUBJECT */}
 
                     <TextField
-                        select
                         fullWidth
+                        select
                         label="Subject"
                         margin="normal"
-                        value={form.subject_id}
+                        value={
+                            form.subject_id
+                        }
                         onChange={(e) =>
                             setForm({
                                 ...form,
@@ -1235,10 +1861,16 @@ function Timetables() {
                             (item) => (
 
                                 <MenuItem
-                                    key={item.id}
-                                    value={item.id}
+                                    key={
+                                        item.id
+                                    }
+                                    value={
+                                        item.id
+                                    }
                                 >
-                                    {item.name}
+                                    {
+                                        item.name
+                                    }
                                 </MenuItem>
 
                             )
@@ -1246,15 +1878,16 @@ function Timetables() {
 
                     </TextField>
 
-
                     {/* TEACHER */}
 
                     <TextField
-                        select
                         fullWidth
+                        select
                         label="Teacher"
                         margin="normal"
-                        value={form.teacher_id}
+                        value={
+                            form.teacher_id
+                        }
                         onChange={(e) =>
                             setForm({
                                 ...form,
@@ -1268,17 +1901,22 @@ function Timetables() {
                             (item) => (
 
                                 <MenuItem
-                                    key={item.id}
-                                    value={item.id}
+                                    key={
+                                        item.id
+                                    }
+                                    value={
+                                        item.id
+                                    }
                                 >
-                                    {item.name}
+                                    {
+                                        item.name
+                                    }
                                 </MenuItem>
 
                             )
                         )}
 
                     </TextField>
-
 
                     {/* DATE */}
 
@@ -1290,7 +1928,9 @@ function Timetables() {
                         InputLabelProps={{
                             shrink: true
                         }}
-                        value={form.date}
+                        value={
+                            form.date
+                        }
                         onChange={(e) =>
                             setForm({
                                 ...form,
@@ -1300,8 +1940,7 @@ function Timetables() {
                         }
                     />
 
-
-                    {/* START TIME */}
+                    {/* START */}
 
                     <TextField
                         fullWidth
@@ -1323,8 +1962,7 @@ function Timetables() {
                         }
                     />
 
-
-                    {/* END TIME */}
+                    {/* END */}
 
                     <TextField
                         fullWidth
@@ -1348,35 +1986,30 @@ function Timetables() {
 
                 </DialogContent>
 
-
                 <DialogActions>
 
                     {editId && (
 
                         <Button
                             color="error"
-                            onClick={() => {
-
+                            onClick={() =>
                                 deleteTimetable(
                                     editId
-                                );
-
-                                setOpen(false);
-
-                            }}
+                                )
+                            }
                         >
                             Delete
                         </Button>
 
                     )}
 
-
                     <Button
-                        onClick={closeModal}
+                        onClick={
+                            closeModal
+                        }
                     >
                         Cancel
                     </Button>
-
 
                     <Button
                         variant="contained"
@@ -1384,9 +2017,10 @@ function Timetables() {
                             saveTimetable
                         }
                     >
-                        {editId
-                            ? "UPDATE"
-                            : "ADD"
+                        {
+                            editId
+                                ? "UPDATE"
+                                : "ADD"
                         }
                     </Button>
 
