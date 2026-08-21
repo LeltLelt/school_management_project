@@ -11,6 +11,7 @@ use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ExamResultController;
 use App\Http\Controllers\StudentEnrollmentController;
+use App\Http\Controllers\TimetableGroupController;
 
 Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/login',[AuthController::class,'login']);
@@ -26,5 +27,6 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::apiResource('timetables', TimetableController::class);
     Route::apiResource('attendances', AttendanceController::class);
     Route::apiResource('exam-results', ExamResultController::class);
+    Route::apiResource('timetable_groups', TimetableGroupController::class);
     });
 
