@@ -3,10 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Organization;
-use App\Models\SchoolClass;
-use App\Models\Teacher;
-use App\Models\Subject;
 
 class Timetable extends Model
 {
@@ -18,26 +14,46 @@ class Timetable extends Model
         'start_time',
         'end_time',
         'organization_id',
+        'timetable_group_id',
     ];
 
     public function organization()
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(
+            Organization::class,
+            'organization_id'
+        );
     }
 
     public function class()
     {
-        return $this->belongsTo(SchoolClass::class, 'class_id');
+        return $this->belongsTo(
+            SchoolClass::class,
+            'class_id'
+        );
     }
 
     public function teacher()
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo(
+            Teacher::class,
+            'teacher_id'
+        );
     }
 
     public function subject()
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(
+            Subject::class,
+            'subject_id'
+        );
+    }
+
+    public function timetableGroup()
+    {
+        return $this->belongsTo(
+            TimetableGroup::class,
+            'timetable_group_id'
+        );
     }
 }
-
